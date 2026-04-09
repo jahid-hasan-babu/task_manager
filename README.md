@@ -24,7 +24,7 @@ A production-ready task management system built with NestJS and Next.js.
 
 ---
 
-## Quick Start
+## Quick Start (Local Development)
 
 1. **Backend**:
    ```bash
@@ -42,4 +42,26 @@ A production-ready task management system built with NestJS and Next.js.
    npm run dev
    ```
 
-Access the app at `http://localhost:3002`.
+---
+
+## 🐳 Running with Docker (Recommended)
+
+The easiest way to run the entire stack (Frontend, Backend, and Database sync) is using Docker Compose.
+
+1. **Prerequisites**: Ensure you have Docker and Docker Compose installed.
+2. **Build and Start**:
+   ```bash
+   docker-compose up --build
+   ```
+
+### What's included in Docker:
+- **Backend**: Runs on Port `3000`. Automatically runs migrations on startup.
+- **Frontend**: Runs on Port `3002`. Pre-configured to communicate with the backend.
+- **Database**: Connects to your configured Neon PostgreSQL database.
+
+---
+
+## Access the App
+
+- **Frontend**: [http://localhost:3002](http://localhost:3002)
+- **Backend API**: [http://localhost:3000](http://localhost:3000)

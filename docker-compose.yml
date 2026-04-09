@@ -1,0 +1,38 @@
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tms_backend
+    restart: always
+    environment:
+      DATABASE_URL: "postgresql://neondb_owner:npg_8hNrjksi6oYI@ep-icy-river-am61kq58-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+      JWT_SECRET: "tms-jwt-secret-key-2026-production-grade"
+      JWT_EXPIRATION: "1d"
+      PORT: 3000
+      NODE_ENV: "production"
+    ports:
+      - "3000:3000"
+    # Run migrations and seed if needed, then start
+    command: sh -c "npx prisma migrate deploy && node dist/src/main.js"
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "http://localhost:3000"
+    container_name: tms_frontend
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3000"
+      JWT_SECRET: "tms-jwt-secret-key-2026-production-grade"
+    ports:
+      - "3002:3002"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

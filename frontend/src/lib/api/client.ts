@@ -15,9 +15,12 @@ export function getStoredToken(): string | null {
 }
 
 export function setStoredToken(token: string): void {
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
   Cookies.set(TOKEN_KEY, token, {
     expires: 7, // 7 days
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && !isLocalhost,
     sameSite: 'strict',
   });
 }
@@ -26,7 +29,7 @@ export function removeStoredToken(): void {
   Cookies.remove(TOKEN_KEY);
 }
 
-// ── Axios instance ──────────────────────────────────────────
+
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -40,7 +43,7 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// ── Request interceptor: attach JWT ─────────────────────────
+
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -57,7 +60,7 @@ apiClient.interceptors.request.use(
   },
 );
 
-// ── Response interceptor: handle 401 + errors ───────────────
+
 
 let isRedirecting = false;
 
@@ -66,20 +69,18 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const status = error.response?.status;
 
-    // 401 Unauthorized → token expired or invalid
     if (status === 401 && !isRedirecting) {
       isRedirecting = true;
       removeStoredToken();
 
-      // Clear Zustand store (lazy import to avoid circular deps)
       const { useAuthStore } = await import('@/lib/store/auth');
       useAuthStore.getState().logout();
 
-      // Redirect to login
+
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
 
-        // Don't redirect if already on login page
+    
         if (currentPath !== '/login') {
           window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
         }
@@ -87,8 +88,6 @@ apiClient.interceptors.response.use(
 
       isRedirecting = false;
     }
-
-    // Normalize error message for consumers
     const apiError = error.response?.data as
       | { message?: string | string[]; error?: string }
       | undefined;

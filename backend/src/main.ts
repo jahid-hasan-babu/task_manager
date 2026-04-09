@@ -19,6 +19,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:3002',
       'http://127.0.0.1:3002',
+      'http://localhost:3001',
+      
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -38,7 +40,7 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`Backend is running on http://localhost:${port}`);
 }
 bootstrap();

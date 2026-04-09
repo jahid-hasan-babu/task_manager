@@ -76,8 +76,7 @@ export default function AuditLogsPage() {
              {/* Numbered pages logic */}
              {Array.from({ length: Math.min(5, data.meta.totalPages) }, (_, i) => {
                const pageNum = i + 1;
-               // Simple logic to show pages around current page
-               // In a real app we'd handle windowing better
+         
                return (
                  <button
                    key={pageNum}

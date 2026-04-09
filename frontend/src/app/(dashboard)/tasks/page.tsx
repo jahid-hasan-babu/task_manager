@@ -32,7 +32,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 
-// ── Status filter options ───────────────────────────────────
+
 
 const STATUS_FILTERS = [
   { value: 'ALL', label: 'All Tasks' },
@@ -47,15 +47,15 @@ export default function TasksPage() {
   const user = useAuthStore((s: any) => s.user);
   const isAdmin = useAuthStore((s: any) => s.isAdmin());
 
-  // ── Query ───────────────────────────────────────────────
+
   const { data: usersData } = useUsers();
   const users = usersData ?? [];
 
-  // ── Filters ─────────────────────────────────────────────
+
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ── Query ───────────────────────────────────────────────
+
   const [page, setPage] = useState(1);
   const queryParams = useMemo(
     () => ({
@@ -63,7 +63,7 @@ export default function TasksPage() {
       status: statusFilter !== 'ALL' ? statusFilter : undefined,
       assignedUserId: !isAdmin ? user?.id : undefined,
       search: searchQuery || undefined,
-      limit: 12, // 3 columns x 4 rows
+      limit: 12,
     }),
     [page, statusFilter, searchQuery, isAdmin, user?.id],
   );
@@ -73,25 +73,25 @@ export default function TasksPage() {
   const tasks = data?.data ?? [];
   const totalCount = data?.meta?.total ?? 0;
 
-  // ── Dialog states ───────────────────────────────────────
+
   const [createOpen, setCreateOpen] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [statusTask, setStatusTask] = useState<Task | null>(null);
   const [assignTask, setAssignTask] = useState<Task | null>(null);
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
 
-  // ── Delete handler ──────────────────────────────────────
+
   async function handleConfirmDelete() {
     if (!deleteTask) return;
     try {
       await deleteMutation.mutateAsync(deleteTask.id);
       setDeleteTask(null);
     } catch {
-      // handled by mutation
+      
     }
   }
 
-  // ── Stats ───────────────────────────────────────────────
+ 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     tasks.forEach((t) => {
@@ -102,7 +102,7 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6">
-      {/* ── Header ──────────────────────────────────────── */}
+      
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
@@ -120,9 +120,9 @@ export default function TasksPage() {
         )}
       </div>
 
-      {/* ── Filters bar ─────────────────────────────────── */}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        {/* Search */}
+
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -133,7 +133,7 @@ export default function TasksPage() {
           />
         </div>
 
-        {/* Status filter */}
+     
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -150,7 +150,7 @@ export default function TasksPage() {
           </Select>
         </div>
 
-        {/* Quick status badges */}
+    
         <div className="hidden lg:flex items-center gap-1.5 ml-auto">
           {Object.entries(statusCounts).map(([status, count]) => (
             <Badge
@@ -169,7 +169,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* ── Content ─────────────────────────────────────── */}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -218,7 +218,7 @@ export default function TasksPage() {
         </div>
       )}
 
-      {/* Pagination Controls */}
+ 
       {data?.meta && data.meta.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card/10 p-4 border border-white/5 rounded-xl">
            <p className="text-sm text-muted-foreground font-medium">
@@ -264,30 +264,29 @@ export default function TasksPage() {
         </div>
       )}
 
-      {/* ── Dialogs ─────────────────────────────────────── */}
 
-      {/* Create */}
+  
       <CreateTaskDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         users={users}
       />
 
-      {/* Edit (Admin) */}
+  
       <UpdateTaskDialog
         task={editTask}
         open={!!editTask}
         onOpenChange={(open: boolean) => !open && setEditTask(null)}
       />
 
-      {/* Status change (All) */}
+   
       <UpdateStatusDialog
         task={statusTask}
         open={!!statusTask}
         onOpenChange={(open: boolean) => !open && setStatusTask(null)}
       />
 
-      {/* Assign (Admin) */}
+
       <AssignTaskDialog
         task={assignTask}
         open={!!assignTask}
@@ -295,7 +294,7 @@ export default function TasksPage() {
         users={users}
       />
 
-      {/* Delete confirmation */}
+   
       <Dialog
         open={!!deleteTask}
         onOpenChange={(open) => !open && setDeleteTask(null)}

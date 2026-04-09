@@ -49,9 +49,9 @@ export default function AuditLogsPage() {
 
       <AuditTable logs={data?.data || []} isLoading={isLoading} />
 
-      {/* Enhanced Numbered Pagination */}
+      {/* Sticky Numbered Pagination */}
       {data?.meta && data.meta.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card/30 p-4 border border-border rounded-lg mt-6">
+        <div className="sticky bottom-6 z-20 flex flex-col sm:flex-row justify-between items-center gap-4 bg-background/60 backdrop-blur-xl p-4 border border-border rounded-2xl shadow-2xl mt-6 animate-in slide-in-from-bottom-4">
            <p className="text-sm text-muted-foreground font-medium">
              Showing page {data.meta.page} of {data.meta.totalPages} • Total Logs: {data.meta.total}
            </p>

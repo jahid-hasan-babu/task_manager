@@ -13,7 +13,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Task, TaskStatus } from '@/lib/types';
-import { formatRelative, formatDate } from '@/lib/utils';
+import { formatRelative, formatDate, cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/store/auth';
 import { useState } from 'react';
 
@@ -52,7 +52,10 @@ export function TaskCard({
   const statusConfig = STATUS_CONFIG[task.status];
 
   return (
-    <Card className="group relative transition-all duration-200 hover:shadow-lg hover:border-primary/30 bg-card/50 backdrop-blur-sm">
+    <Card className={cn(
+      "group relative transition-all duration-200 hover:shadow-lg hover:border-primary/30 bg-card/50 backdrop-blur-sm",
+      showActions ? "z-30" : "z-0"
+    )}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">

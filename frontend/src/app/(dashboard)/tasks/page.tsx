@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, Filter, LayoutGrid, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,8 +32,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 
-
-
 const STATUS_FILTERS = [
   { value: 'ALL', label: 'All Tasks' },
   { value: TaskStatus.TODO, label: 'To Do' },
@@ -47,16 +45,18 @@ export default function TasksPage() {
   const user = useAuthStore((s: any) => s.user);
   const isAdmin = useAuthStore((s: any) => s.isAdmin());
 
-
   const { data: usersData } = useUsers();
   const users = usersData ?? [];
 
-
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-
-
   const [page, setPage] = useState(1);
+
+  // Reset to page 1 when filters or search change
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, searchQuery]);
+
   const queryParams = useMemo(
     () => ({
       page,
@@ -219,8 +219,9 @@ export default function TasksPage() {
       )}
 
  
+      {/* Sticky Pagination Bar */}
       {data?.meta && data.meta.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card/10 p-4 border border-white/5 rounded-xl">
+        <div className="sticky bottom-4 z-20 flex flex-col sm:flex-row justify-between items-center gap-4 bg-background/60 backdrop-blur-xl p-4 border border-white/10 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4">
            <p className="text-sm text-muted-foreground font-medium">
              Showing {tasks.length} of {data.meta.total} tasks
            </p>

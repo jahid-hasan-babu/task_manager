@@ -12,6 +12,10 @@ export interface JwtPayload {
   exp?: number;
 }
 
+// Simple in-memory cache to avoid DB hits on every single request
+const USER_CACHE = new Map<string, { user: any, expiresAt: number }>();
+const CACHE_TTL = 60 * 1000; // 60 seconds
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -25,16 +29,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  /**
-   * Called after JWT signature is verified and payload is decoded.
-   * The returned value is attached to req.user.
-   *
-   * We fetch the full user from DB to ensure:
-   * 1. User still exists (wasn't deleted after token was issued)
-   * 2. User is still active (wasn't deactivated)
-   * 3. Role is current (wasn't changed after token was issued)
-   */
   async validate(payload: JwtPayload) {
+    const cached = USER_CACHE.get(payload.sub);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.user;
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       select: {
@@ -54,6 +54,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Account has been deactivated');
     }
 
-    return user; // → req.user
+    // Update cache
+    USER_CACHE.set(payload.sub, {
+      user,
+      expiresAt: Date.now() + CACHE_TTL,
+    });
+
+    return user;
   }
 }

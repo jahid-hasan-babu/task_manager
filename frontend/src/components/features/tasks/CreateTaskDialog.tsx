@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { useCreateTask } from '@/lib/hooks/useTasks';
 import { TaskStatus } from '@/lib/types';
+import { DatePicker } from '@/components/ui/date-picker';
 
 // ── Validation schema ───────────────────────────────────────
 
@@ -173,7 +174,12 @@ export function CreateTaskDialog({
           {/* Due Date */}
           <div className="space-y-2">
             <Label htmlFor="dueDate">Due Date</Label>
-            <Input id="dueDate" type="date" {...form.register('dueDate')} />
+            <DatePicker
+              id="dueDate"
+              value={form.watch('dueDate') || ''}
+              onChange={(val) => form.setValue('dueDate', val)}
+              placeholder="Pick a due date"
+            />
           </div>
 
           {/* Actions */}

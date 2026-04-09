@@ -56,14 +56,16 @@ export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // ── Query ───────────────────────────────────────────────
+  const [page, setPage] = useState(1);
   const queryParams = useMemo(
     () => ({
+      page,
       status: statusFilter !== 'ALL' ? statusFilter : undefined,
       assignedUserId: !isAdmin ? user?.id : undefined,
       search: searchQuery || undefined,
-      limit: 50,
+      limit: 12, // 3 columns x 4 rows
     }),
-    [statusFilter, searchQuery, isAdmin, user?.id],
+    [page, statusFilter, searchQuery, isAdmin, user?.id],
   );
 
   const { data, isLoading, isError, error } = useTasks(queryParams);
@@ -213,6 +215,52 @@ export default function TasksPage() {
               onAssign={(t: Task) => setAssignTask(t)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {data?.meta && data.meta.totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card/10 p-4 border border-white/5 rounded-xl">
+           <p className="text-sm text-muted-foreground font-medium">
+             Showing {tasks.length} of {data.meta.total} tasks
+           </p>
+           
+           <div className="flex flex-wrap gap-2 items-center justify-center">
+             <button
+               onClick={() => setPage(1)}
+               disabled={page === 1}
+               className="px-3 py-1.5 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors"
+             >
+               First
+             </button>
+             
+             {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
+               .filter(p => p === 1 || p === data.meta.totalPages || Math.abs(p - page) <= 1)
+               .map((pageNum, idx, arr) => (
+                 <div key={pageNum} className="flex items-center">
+                   {idx > 0 && arr[idx-1] !== pageNum - 1 && <span className="text-muted-foreground px-1">...</span>}
+                   <button
+                     onClick={() => setPage(pageNum)}
+                     className={`px-3 py-1.5 border rounded-md text-xs transition-colors ${
+                       page === pageNum 
+                        ? 'bg-primary border-primary text-primary-foreground font-bold' 
+                        : 'bg-black/40 border-white/10 hover:bg-white/10 text-muted-foreground'
+                     }`}
+                   >
+                     {pageNum}
+                   </button>
+                 </div>
+               ))
+             }
+
+             <button
+               onClick={() => setPage(data.meta.totalPages)}
+               disabled={page === data.meta.totalPages}
+               className="px-3 py-1.5 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors"
+             >
+               Last
+             </button>
+           </div>
         </div>
       )}
 

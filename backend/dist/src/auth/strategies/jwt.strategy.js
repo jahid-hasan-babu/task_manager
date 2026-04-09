@@ -15,6 +15,8 @@ const config_1 = require("@nestjs/config");
 const passport_1 = require("@nestjs/passport");
 const passport_jwt_1 = require("passport-jwt");
 const prisma_service_1 = require("../../prisma/prisma.service");
+const USER_CACHE = new Map();
+const CACHE_TTL = 60 * 1000;
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
     configService;
     prisma;
@@ -28,6 +30,10 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         this.prisma = prisma;
     }
     async validate(payload) {
+        const cached = USER_CACHE.get(payload.sub);
+        if (cached && cached.expiresAt > Date.now()) {
+            return cached.user;
+        }
         const user = await this.prisma.user.findUnique({
             where: { id: payload.sub },
             select: {
@@ -44,6 +50,10 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         if (!user.isActive) {
             throw new common_1.UnauthorizedException('Account has been deactivated');
         }
+        USER_CACHE.set(payload.sub, {
+            user,
+            expiresAt: Date.now() + CACHE_TTL,
+        });
         return user;
     }
 };

@@ -12,7 +12,7 @@ export default function AuditLogsPage() {
   
   const { data, isLoading } = useAuditLogs({ 
     page, 
-    limit: 20,
+    limit: 10,
     actionType: actionType || undefined
   });
 
@@ -49,26 +49,66 @@ export default function AuditLogsPage() {
 
       <AuditTable logs={data?.data || []} isLoading={isLoading} />
 
-      {/* Basic Pagination Controls */}
+      {/* Enhanced Numbered Pagination */}
       {data?.meta && data.meta.totalPages > 1 && (
-        <div className="flex justify-between items-center bg-card/30 p-4 border border-border rounded-lg mt-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card/30 p-4 border border-border rounded-lg mt-6">
            <p className="text-sm text-muted-foreground font-medium">
              Showing page {data.meta.page} of {data.meta.totalPages} • Total Logs: {data.meta.total}
            </p>
-           <div className="flex gap-2 text-sm font-medium">
+           
+           <div className="flex flex-wrap gap-2 items-center justify-center">
+             <button
+               onClick={() => setPage(1)}
+               disabled={page === 1}
+               className="px-3 py-1.5 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors"
+             >
+               First
+             </button>
+             
              <button
                onClick={() => setPage(p => Math.max(1, p - 1))}
                disabled={page === 1}
-               className="px-4 py-2 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+               className="px-3 py-1.5 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors"
              >
-               Previous
+               Prev
              </button>
+
+             {/* Numbered pages logic */}
+             {Array.from({ length: Math.min(5, data.meta.totalPages) }, (_, i) => {
+               const pageNum = i + 1;
+               // Simple logic to show pages around current page
+               // In a real app we'd handle windowing better
+               return (
+                 <button
+                   key={pageNum}
+                   onClick={() => setPage(pageNum)}
+                   className={`px-3 py-1.5 border rounded-md text-xs transition-colors ${
+                     page === pageNum 
+                      ? 'bg-primary border-primary text-primary-foreground font-bold' 
+                      : 'bg-black/40 border-white/10 hover:bg-white/10 text-muted-foreground'
+                   }`}
+                 >
+                   {pageNum}
+                 </button>
+               );
+             })}
+
+             {data.meta.totalPages > 5 && <span className="text-muted-foreground px-1">...</span>}
+
              <button
                onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))}
                disabled={page === data.meta.totalPages}
-               className="px-4 py-2 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+               className="px-3 py-1.5 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors"
              >
                Next
+             </button>
+
+             <button
+               onClick={() => setPage(data.meta.totalPages)}
+               disabled={page === data.meta.totalPages}
+               className="px-3 py-1.5 bg-black/40 border border-white/10 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors"
+             >
+               Last
              </button>
            </div>
         </div>

@@ -87,61 +87,94 @@ let TasksService = class TasksService {
         return task;
     }
     async update(id, dto) {
-        await this.findOne(id);
-        return this.prisma.task.update({
-            where: { id },
-            data: {
-                ...(dto.title !== undefined && { title: dto.title }),
-                ...(dto.description !== undefined && { description: dto.description }),
-                ...(dto.status !== undefined && { status: dto.status }),
-                ...(dto.assignedUserId !== undefined && {
-                    assignedUserId: dto.assignedUserId || null,
-                }),
-                ...(dto.dueDate !== undefined && {
-                    dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
-                }),
-            },
-            include: {
-                assignedUser: { select: { id: true, name: true, email: true } },
-                createdBy: { select: { id: true, name: true, email: true } },
-            },
-        });
+        try {
+            return await this.prisma.task.update({
+                where: { id },
+                data: {
+                    ...(dto.title !== undefined && { title: dto.title }),
+                    ...(dto.description !== undefined && { description: dto.description }),
+                    ...(dto.status !== undefined && { status: dto.status }),
+                    ...(dto.assignedUserId !== undefined && {
+                        assignedUserId: dto.assignedUserId || null,
+                    }),
+                    ...(dto.dueDate !== undefined && {
+                        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+                    }),
+                },
+                include: {
+                    assignedUser: { select: { id: true, name: true, email: true } },
+                    createdBy: { select: { id: true, name: true, email: true } },
+                },
+            });
+        }
+        catch (e) {
+            if (e?.code === 'P2025')
+                throw new common_1.NotFoundException('Task not found');
+            throw e;
+        }
     }
     async updateStatus(id, status, userId, userRole) {
-        const task = await this.findOne(id);
-        if (userRole === client_1.Role.USER && task.assignedUserId !== userId) {
-            throw new common_1.ForbiddenException('You can only update status of tasks assigned to you');
+        if (userRole === client_1.Role.USER) {
+            const task = await this.prisma.task.findUnique({
+                where: { id },
+                select: { assignedUserId: true },
+            });
+            if (!task)
+                throw new common_1.NotFoundException('Task not found');
+            if (task.assignedUserId !== userId) {
+                throw new common_1.ForbiddenException('You can only update status of tasks assigned to you');
+            }
         }
-        return this.prisma.task.update({
-            where: { id },
-            data: { status },
-            include: {
-                assignedUser: { select: { id: true, name: true, email: true } },
-                createdBy: { select: { id: true, name: true, email: true } },
-            },
-        });
+        try {
+            return await this.prisma.task.update({
+                where: { id },
+                data: { status },
+                include: {
+                    assignedUser: { select: { id: true, name: true, email: true } },
+                    createdBy: { select: { id: true, name: true, email: true } },
+                },
+            });
+        }
+        catch (e) {
+            if (e?.code === 'P2025')
+                throw new common_1.NotFoundException('Task not found');
+            throw e;
+        }
     }
     async assignTask(id, assignedUserId) {
-        await this.findOne(id);
         if (assignedUserId) {
             const user = await this.prisma.user.findUnique({
                 where: { id: assignedUserId },
+                select: { id: true },
             });
             if (!user)
                 throw new common_1.NotFoundException('Assigned user not found');
         }
-        return this.prisma.task.update({
-            where: { id },
-            data: { assignedUserId },
-            include: {
-                assignedUser: { select: { id: true, name: true, email: true } },
-                createdBy: { select: { id: true, name: true, email: true } },
-            },
-        });
+        try {
+            return await this.prisma.task.update({
+                where: { id },
+                data: { assignedUserId },
+                include: {
+                    assignedUser: { select: { id: true, name: true, email: true } },
+                    createdBy: { select: { id: true, name: true, email: true } },
+                },
+            });
+        }
+        catch (e) {
+            if (e?.code === 'P2025')
+                throw new common_1.NotFoundException('Task not found');
+            throw e;
+        }
     }
     async remove(id) {
-        await this.findOne(id);
-        return this.prisma.task.delete({ where: { id } });
+        try {
+            return await this.prisma.task.delete({ where: { id } });
+        }
+        catch (e) {
+            if (e?.code === 'P2025')
+                throw new common_1.NotFoundException('Task not found');
+            throw e;
+        }
     }
 };
 exports.TasksService = TasksService;

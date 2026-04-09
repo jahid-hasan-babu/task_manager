@@ -103,26 +103,29 @@ export class TasksService {
   }
 
   async update(id: string, dto: UpdateTaskDto) {
-    await this.findOne(id); // ensure exists
-
-    return this.prisma.task.update({
-      where: { id },
-      data: {
-        ...(dto.title !== undefined && { title: dto.title }),
-        ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.status !== undefined && { status: dto.status }),
-        ...(dto.assignedUserId !== undefined && {
-          assignedUserId: dto.assignedUserId || null,
-        }),
-        ...(dto.dueDate !== undefined && {
-          dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
-        }),
-      },
-      include: {
-        assignedUser: { select: { id: true, name: true, email: true } },
-        createdBy: { select: { id: true, name: true, email: true } },
-      },
-    });
+    try {
+      return await this.prisma.task.update({
+        where: { id },
+        data: {
+          ...(dto.title !== undefined && { title: dto.title }),
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.status !== undefined && { status: dto.status }),
+          ...(dto.assignedUserId !== undefined && {
+            assignedUserId: dto.assignedUserId || null,
+          }),
+          ...(dto.dueDate !== undefined && {
+            dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+          }),
+        },
+        include: {
+          assignedUser: { select: { id: true, name: true, email: true } },
+          createdBy: { select: { id: true, name: true, email: true } },
+        },
+      });
+    } catch (e: any) {
+      if (e?.code === 'P2025') throw new NotFoundException('Task not found');
+      throw e;
+    }
   }
 
   async updateStatus(
@@ -131,47 +134,66 @@ export class TasksService {
     userId: string,
     userRole: Role,
   ) {
-    const task = await this.findOne(id);
-
-    // Users can only update status of tasks assigned to them
-    if (userRole === Role.USER && task.assignedUserId !== userId) {
-      throw new ForbiddenException(
-        'You can only update status of tasks assigned to you',
-      );
+    // For regular users: verify they own this task in the same update query
+    if (userRole === Role.USER) {
+      const task = await this.prisma.task.findUnique({
+        where: { id },
+        select: { assignedUserId: true },
+      });
+      if (!task) throw new NotFoundException('Task not found');
+      if (task.assignedUserId !== userId) {
+        throw new ForbiddenException(
+          'You can only update status of tasks assigned to you',
+        );
+      }
     }
 
-    return this.prisma.task.update({
-      where: { id },
-      data: { status },
-      include: {
-        assignedUser: { select: { id: true, name: true, email: true } },
-        createdBy: { select: { id: true, name: true, email: true } },
-      },
-    });
+    try {
+      return await this.prisma.task.update({
+        where: { id },
+        data: { status },
+        include: {
+          assignedUser: { select: { id: true, name: true, email: true } },
+          createdBy: { select: { id: true, name: true, email: true } },
+        },
+      });
+    } catch (e: any) {
+      if (e?.code === 'P2025') throw new NotFoundException('Task not found');
+      throw e;
+    }
   }
 
   async assignTask(id: string, assignedUserId: string | null) {
-    await this.findOne(id);
-
+    // Verify assigned user exists without a separate task lookup
     if (assignedUserId) {
       const user = await this.prisma.user.findUnique({
         where: { id: assignedUserId },
+        select: { id: true },
       });
       if (!user) throw new NotFoundException('Assigned user not found');
     }
 
-    return this.prisma.task.update({
-      where: { id },
-      data: { assignedUserId },
-      include: {
-        assignedUser: { select: { id: true, name: true, email: true } },
-        createdBy: { select: { id: true, name: true, email: true } },
-      },
-    });
+    try {
+      return await this.prisma.task.update({
+        where: { id },
+        data: { assignedUserId },
+        include: {
+          assignedUser: { select: { id: true, name: true, email: true } },
+          createdBy: { select: { id: true, name: true, email: true } },
+        },
+      });
+    } catch (e: any) {
+      if (e?.code === 'P2025') throw new NotFoundException('Task not found');
+      throw e;
+    }
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-    return this.prisma.task.delete({ where: { id } });
+    try {
+      return await this.prisma.task.delete({ where: { id } });
+    } catch (e: any) {
+      if (e?.code === 'P2025') throw new NotFoundException('Task not found');
+      throw e;
+    }
   }
 }

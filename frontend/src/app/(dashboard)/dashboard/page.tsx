@@ -3,6 +3,7 @@
 import { useTasks } from '@/lib/hooks/useTasks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Circle, Clock, Layout } from 'lucide-react';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { data: tasksData, isLoading } = useTasks();
@@ -70,12 +71,12 @@ export default function DashboardPage() {
       <div className="bg-card/30 rounded-2xl border border-white/5 p-8 text-center">
         <h2 className="text-xl font-semibold mb-2">Ready to work?</h2>
         <p className="text-muted-foreground mb-6">Head over to the tasks page to manage your workflow.</p>
-        <a 
+        <Link 
           href="/tasks" 
           className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           View All Tasks
-        </a>
+        </Link>
       </div>
     </div>
   );

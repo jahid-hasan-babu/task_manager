@@ -16,6 +16,9 @@ export function useAuditLogs(params?: AuditQueryParams) {
   return useQuery({
     queryKey: auditKeys.list(params),
     queryFn: () => getAuditLogs(params),
-    enabled: isAdmin, // Only fetch if the user is an admin
+    enabled: isAdmin,
+    staleTime: 0,          // Always fetch fresh — audit logs change on every action
+    refetchOnMount: true,  // Refetch whenever component mounts (page navigation)
+    gcTime: 2 * 60 * 1000, // Keep in cache 2 min only
   });
 }

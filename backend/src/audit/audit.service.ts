@@ -44,7 +44,7 @@ export class AuditService {
       this.logger.debug(
         `Audit: ${input.actorName || input.actorId} → ${input.actionType} on ${input.targetEntity}#${input.targetId}`,
       );
-    } catch (error) {
+    } catch (error:any) {
       // Audit logging must NEVER crash the main request
       this.logger.error(
         `Failed to create audit log: ${error.message}`,
@@ -144,7 +144,7 @@ export class AuditService {
       }
 
       return await model.findUnique({ where: { id } });
-    } catch (error) {
+    } catch (error:any) {
       this.logger.error(
         `Failed to fetch snapshot for ${entity}#${id}: ${error.message}`,
       );
